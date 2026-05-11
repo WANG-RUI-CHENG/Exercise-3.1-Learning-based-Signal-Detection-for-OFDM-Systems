@@ -1,6 +1,8 @@
 from __future__ import division
 import numpy as np
 import scipy.interpolate
+# 原始程式使用 TensorFlow 1.x 的 placeholder、Session 與 Saver；
+# Colab 目前多為 TensorFlow 2.x，因此使用 compat.v1 讓原始訓練流程可以維持不變。
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_v2_behavior()
@@ -15,7 +17,9 @@ from utils import *
 
 
 def _build_pilots(P, K, mu, pilotCarriers):
-    # pilot bit 長度需與 P、QPSK、64-QAM 設定一致
+    # pilot bit 數會隨 pilot carrier 數量與 modulation 階數改變；
+    # 若仍使用原本只依 P 命名的 Pilot 檔，QPSK 與 64-QAM 可能讀到長度不符的 pilot bits。
+    # 因此這裡用 P 與 mu 一起命名，確保不同 modulation 使用各自正確長度的 pilot 檔。
     pilot_bit_len = len(pilotCarriers) * mu
     if pilot_bit_len == 0:
         return np.array([], dtype=complex)
@@ -45,7 +49,9 @@ def train(config):
     mu = config.mu
     CP_flag = config.with_CP_flag
     if P == 0:
-        pilotCarriers = np.asarray([], dtype=int) # no-pilot 模擬時不配置 pilot carriers
+        # P=0 代表 no-pilot 情境；pilotCarriers 必須設為空陣列，避免 allCarriers[::K//P] 發生除以零錯誤。
+        # 此時所有 subcarriers 都視為 data carriers，用來比較沒有 pilot 輔助時的 BER。
+        pilotCarriers = np.asarray([], dtype=int)
         dataCarriers = allCarriers
     elif P<K:
         pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
@@ -61,6 +67,7 @@ def train(config):
     SNRdb = config.SNR  # signal to noise-ratio in dB at the receiver
     Clipping_Flag = config.Clipping
 
+    # pilotValue 需與目前的 P 與 mu 一致，否則 OFDM symbol 配置 pilot 時會發生長度不符或調變格式錯誤。
     pilotValue = _build_pilots(P, K, mu, pilotCarriers)
 
     CP_flag = config.with_CP_flag
@@ -78,10 +85,13 @@ def train(config):
     examples_to_show = 10
 
     # Network Parameters
+    # hidden layer 大小由 Main.py 統一設定；
+    # task (d) 的輸出維度較大，因此可以在 Main.py 提高 hidden units，而不用直接修改網路主體。
     n_hidden_1 = config.n_hidden_1
     n_hidden_2 = config.n_hidden_2 # 1st layer num features
     n_hidden_3 = config.n_hidden_3 # 2nd layer num features
     n_input = 256 # MNIST data input (img shape: 28*28)
+    # n_output 對應目前 DNN 要預測的 bit 數：QPSK 小 DNN 為 16、64-QAM 小 DNN 為 48、single DNN 為 128。
     n_output = config.n_output #4
     # tf Graph input (only pictures)
     X = tf.placeholder("float", [None, n_input])
@@ -156,7 +166,9 @@ def train(config):
 
     print ('length of training channel response', len(channel_response_set_train), 'length of testing channel response', len(channel_response_set_test))
     saver = tf.train.Saver()
-    snr_model_dir = os.path.join(config.Model_path, config.experiment, 'SNR_' + str(SNRdb)) + '/'  # 依照題目模式與 SNR 分開儲存 checkpoint，避免彼此覆蓋
+    # 不同 experiment 的 n_output 與網路尺寸不同，若存在同一資料夾會互相覆蓋，
+    # 測試階段也可能載入到維度不相容的 checkpoint；因此依 experiment 與 SNR 分開儲存模型。
+    snr_model_dir = os.path.join(config.Model_path, config.experiment, 'SNR_' + str(SNRdb)) + '/'
     os.makedirs(snr_model_dir, exist_ok=True)
     with tf.Session(config=config_GPU) as sess:
         sess.run(init)
@@ -177,6 +189,8 @@ def train(config):
                     channel_response = channel_response_set_train[np.random.randint(0,len(channel_response_set_train))]
                     signal_output, para = ofdm_simulate(bits,channel_response,SNRdb, mu, CP_flag, K, P, CP, pilotValue,pilotCarriers, dataCarriers,Clipping_Flag)
                     #signal_output, para = ofdm_simulate(bits,channel_response,SNRdb,pilotValue)
+                    # 只取目前 DNN 負責預測的 bit 區段作為 label；
+                    # 8-DNN 架構下每個 DNN 學一段 bits，single-DNN 則使用全部 bits。
                     input_labels.append(bits[config.pred_range])
                     input_samples.append(signal_output)
                 batch_x = np.asarray(input_samples)
@@ -200,6 +214,7 @@ def train(config):
                     channel_response= channel_response_set_test[np.random.randint(0,len(channel_response_set_test))]
                     signal_output, para = ofdm_simulate(bits,channel_response,SNRdb,mu, CP_flag, K, P, CP, pilotValue,pilotCarriers, dataCarriers,Clipping_Flag)
                     #signal_output, para = ofdm_simulate(bits,channel_response,SNRdb,pilotValue)
+                    # 測試時使用與訓練相同的 bit 區段，確保 BER 是針對同一個 DNN 輸出範圍計算。
                     input_labels_test.append(bits[config.pred_range])
                     input_samples_test.append(signal_output)
                 batch_x = np.asarray(input_samples_test)
