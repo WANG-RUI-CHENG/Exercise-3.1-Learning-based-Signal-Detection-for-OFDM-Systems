@@ -190,7 +190,7 @@ n_output = 16
 
 ```bash
 %cd /content/OFDM_DNN/DNN_Detection
-!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results_exercise_3_1/task_b_qpsk.log
+!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results/task_b_qpsk.log
 ```
 
 結果：
@@ -227,7 +227,7 @@ n_output = 48
 
 ```bash
 %cd /content/OFDM_DNN/DNN_Detection
-!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results_exercise_3_1/task_c_64qam_real.log
+!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results/task_c_64qam_real.log
 ```
 
 結果：
@@ -266,7 +266,7 @@ n_output = 128
 
 ```bash
 %cd /content/OFDM_DNN/DNN_Detection
-!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results_exercise_3_1/task_d_single_dnn.log
+!python -u Main.py 2>&1 | tee /content/OFDM_DNN/results/task_d_single_dnn.log
 ```
 
 結果：
@@ -356,6 +356,6 @@ Single large DNN is harder to train than multiple smaller DNNs.
    - `c_64qam_8dnns`
    - `d_qpsk_single_dnn`
 6. 執行 `python -u Main.py`。
-7. 將 console 中的 BER 記錄到 `results_exercise_3_1/ber_results_summary.csv`。
+7. 將 console 中的 BER 記錄到 `results/ber_results_summary.csv`。
 
 
