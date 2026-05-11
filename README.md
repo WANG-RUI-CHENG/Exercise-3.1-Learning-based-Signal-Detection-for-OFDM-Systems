@@ -1,6 +1,6 @@
 # Exercise 3.1: Learning-based Signal Detection for OFDM Systems
 
-以原始 `haoyye/OFDM_DNN` 為基礎，完成 Exercise 3.1 的 FC-DNN based OFDM signal detection 實驗。
+以原始 `haoyye/OFDM_DNN` 為基礎，完成 Exercise 3.1 的 FC-DNN based OFDM signal detection 
 
 ---
 
