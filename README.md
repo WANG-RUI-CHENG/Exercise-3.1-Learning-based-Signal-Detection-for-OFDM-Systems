@@ -20,7 +20,7 @@
 
 | 資料夾 | 說明 |
 |---|---|
-| `results` | 放置本次 B/C/D 實驗結果摘要 |
+| `results` | 放置 B/C/D 實驗結果摘要 |
 
 
 ### 未包含的檔案
@@ -87,7 +87,7 @@ Output layer size = 48
 
 ## Colab 環境
 
-本次實驗使用：
+實驗使用：
 
 ```text
 Google Colab
@@ -146,7 +146,7 @@ TensorFlow: TensorFlow 2.x with tensorflow.compat.v1
 
 ---
 
-## 本次 reduced training setting
+## reduced training setting
 
 原始 reference code 預設訓練設定較長，Colab 免費環境20000 epochs約需70小時，不容易完整跑完，因此使用 reduced setting：
 
