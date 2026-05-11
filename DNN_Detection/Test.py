@@ -10,7 +10,7 @@ from utils import *
 
 
 def _build_pilots(P, K, mu, pilotCarriers):
-    # Added for Exercise 3.1: keep pilot length consistent with Train.py.
+    # pilot bit 長度需與 Train.py 的設定一致
     pilot_bit_len = len(pilotCarriers) * mu
     if pilot_bit_len == 0:
         return np.array([], dtype=complex)
@@ -37,7 +37,7 @@ def test(config):
         mu = config.mu
         CP_flag = config.with_CP_flag
         if P == 0:
-            pilotCarriers = np.asarray([], dtype=int) # Added for no-pilot simulation.
+            pilotCarriers = np.asarray([], dtype=int) # no-pilot 模擬時不配置 pilot carriers
             dataCarriers = allCarriers
         elif P<K:
             pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
