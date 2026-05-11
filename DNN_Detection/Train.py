@@ -15,7 +15,7 @@ from utils import *
 
 
 def _build_pilots(P, K, mu, pilotCarriers):
-    # Added for Exercise 3.1: keep pilot length consistent for P=0, QPSK, and 64-QAM.
+    # pilot bit 長度需與 P、QPSK、64-QAM 設定一致
     pilot_bit_len = len(pilotCarriers) * mu
     if pilot_bit_len == 0:
         return np.array([], dtype=complex)
@@ -45,7 +45,7 @@ def train(config):
     mu = config.mu
     CP_flag = config.with_CP_flag
     if P == 0:
-        pilotCarriers = np.asarray([], dtype=int) # Added for no-pilot simulation.
+        pilotCarriers = np.asarray([], dtype=int) # no-pilot 模擬時不配置 pilot carriers
         dataCarriers = allCarriers
     elif P<K:
         pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
@@ -156,7 +156,7 @@ def train(config):
 
     print ('length of training channel response', len(channel_response_set_train), 'length of testing channel response', len(channel_response_set_test))
     saver = tf.train.Saver()
-    snr_model_dir = os.path.join(config.Model_path, config.experiment, 'SNR_' + str(SNRdb)) + '/'  # Added: keep checkpoints from Tasks (b), (c), and (d) separate.
+    snr_model_dir = os.path.join(config.Model_path, config.experiment, 'SNR_' + str(SNRdb)) + '/'  # 依照題目模式與 SNR 分開儲存 checkpoint，避免彼此覆蓋
     os.makedirs(snr_model_dir, exist_ok=True)
     with tf.Session(config=config_GPU) as sess:
         sess.run(init)
