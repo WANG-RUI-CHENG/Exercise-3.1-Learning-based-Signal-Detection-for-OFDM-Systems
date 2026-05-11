@@ -32,7 +32,7 @@ class sysconfig(object):
     learning_rate_decrease_step = 2000
 
     # 原始 reference code 的訓練量較大；這裡預設採用 Colab T4 GPU 可完成的 reduced setting。
-    # 這組參數和 README 的 B/C/D 結果一致，方便其他人直接重現表格中的 BER 趨勢。
+    # 這組參數和 README 的 B/C/D 結果一致，方便直接重現表格中的 BER 趨勢。
     train_epochs = 1000
     total_batch = 10
     train_batch_symbols = 500
