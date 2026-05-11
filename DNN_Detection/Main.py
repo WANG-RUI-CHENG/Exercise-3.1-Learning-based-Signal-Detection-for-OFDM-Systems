@@ -31,17 +31,18 @@ class sysconfig(object):
     learning_rate = 0.001
     learning_rate_decrease_step = 2000
 
-    # 保留原始 reference code 的長訓練預設值；若在 Colab 測試，可先把這幾個數值調小以確認流程
-    train_epochs = 20000
-    total_batch = 50
-    train_batch_symbols = 1000
+    # 原始 reference code 的訓練量較大；這裡預設採用 Colab T4 GPU 可完成的 reduced setting。
+    # 這組參數和 README 的 B/C/D 結果一致，方便其他人直接重現表格中的 BER 趨勢。
+    train_epochs = 1000
+    total_batch = 10
+    train_batch_symbols = 500
     display_step = 5
     model_saving_step = 5
     test_step = 1000
     small_test_number = 1000
-    big_test_number = 10000
-    final_test_number = 100000
-    model_epoch = 19995
+    big_test_number = 5000
+    final_test_number = 10000
+    model_epoch = 995
 
     # 預設只跑單一設定，避免一次掃描所有 SNR/pilot 花太久；需要畫 BER 曲線時再改成 True
     IS_Training = True
