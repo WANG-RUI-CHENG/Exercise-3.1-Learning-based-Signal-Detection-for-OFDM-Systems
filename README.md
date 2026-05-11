@@ -1,8 +1,6 @@
 # Exercise 3.1: Learning-based Signal Detection for OFDM Systems
 
-本 repo 是以原始 `haoyye/OFDM_DNN` 專案為基礎，完成 Exercise 3.1 的 FC-DNN based OFDM signal detection 實驗。
-
-我保留原始專案檔案與目錄結構，只針對完成題目所需的少數檔案進行修改，並新增 `results_exercise_3_1/` 放置本次 Colab 實驗結果。
+以原始 `haoyye/OFDM_DNN` 為基礎，完成 Exercise 3.1 的 FC-DNN based OFDM signal detection 實驗。
 
 ---
 
