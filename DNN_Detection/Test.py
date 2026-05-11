@@ -1,5 +1,7 @@
 from __future__ import division
 import numpy as np
+# 原始程式使用 TensorFlow 1.x 的 placeholder、Session 與 Saver；
+# Colab 目前多為 TensorFlow 2.x，因此使用 compat.v1 讓原始訓練流程可以維持不變。
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_v2_behavior()
@@ -10,7 +12,8 @@ from utils import *
 
 
 def _build_pilots(P, K, mu, pilotCarriers):
-    # pilot bit 長度需與 Train.py 的設定一致
+    # 測試時必須產生與訓練完全相同的 pilot 設定；
+    # 因此 pilot bit 長度與檔名規則要和 Train.py 保持一致，避免載入模型後輸入分佈不同。
     pilot_bit_len = len(pilotCarriers) * mu
     if pilot_bit_len == 0:
         return np.array([], dtype=complex)
@@ -37,7 +40,9 @@ def test(config):
         mu = config.mu
         CP_flag = config.with_CP_flag
         if P == 0:
-            pilotCarriers = np.asarray([], dtype=int) # no-pilot 模擬時不配置 pilot carriers
+            # P=0 表示 no-pilot 測試；pilotCarriers 設為空陣列，所有 subcarriers 都作為 data carriers。
+            # 這樣可避免 K//P 的除以零錯誤，也能和訓練端的 no-pilot 設定一致。
+            pilotCarriers = np.asarray([], dtype=int)
             dataCarriers = allCarriers
         elif P<K:
             pilotCarriers = allCarriers[::K//P] # Pilots is every (K/P)th carrier.
@@ -49,6 +54,7 @@ def test(config):
         payloadBits_per_OFDM = K*mu
         SNRdb = config.SNR  # signal to noise-ratio in dB at the receiver
         Clipping_Flag = config.Clipping
+        # 測試端的 pilotValue 必須與訓練端一致，否則接收訊號特徵分佈不同，BER 比較會失去意義。
         pilotValue = _build_pilots(P, K, mu, pilotCarriers)
 
         training_epochs = 20
@@ -59,10 +65,12 @@ def test(config):
         examples_to_show = 10
 
         # Network Parameters
+        # 測試時必須使用與訓練時完全相同的 hidden layer 與 output size，否則 Saver 無法正確 restore checkpoint。
         n_hidden_1 = config.n_hidden_1
         n_hidden_2 = config.n_hidden_2 # 1st layer num features
         n_hidden_3 = config.n_hidden_3 # 2nd layer num features
         n_input = 256 # MNIST data input (img shape: 28*28)
+        # n_output 由 experiment 決定，必須和 Train.py 儲存的模型輸出層維度一致。
         n_output = config.n_output #4
         # tf Graph input (only pictures)
         X = tf.placeholder("float", [None, n_input])
@@ -152,6 +160,7 @@ def test(config):
             sess.run(init)
             saving_name = getattr(config, 'model_name', None)
             if saving_name is None:
+                # checkpoint 路徑包含 experiment 與 SNR，可避免 QPSK、64-QAM、single-DNN 的模型互相混用。
                 saving_name = os.path.join(config.Model_path, config.experiment, 'SNR_' + str(SNRdb), 'DetectionModel_SNR_' + str(SNRdb) + '_Pilot_' + str(P) + '_epoch_' + str(config.model_epoch))
             saver.restore(sess, saving_name)
             input_samples_test = []
@@ -166,6 +175,8 @@ def test(config):
                 #signal_output, para = ofdm_simulate_single(bits,channel_response)
                 signal_output, para = ofdm_simulate(bits,channel_response,SNRdb,mu, CP_flag, K, P, CP, pilotValue,pilotCarriers, dataCarriers,Clipping_Flag)
                 #input_labels_test.append(codeword)
+                # 只比較目前 DNN 應該輸出的 bit 範圍；
+                # 若是 single-DNN，pred_range 會是 0:128，因此會計算完整 QPSK data vector 的 BER。
                 input_labels_test.append(bits[config.pred_range])
                 #input_samples_test.append(np.concatenate((signal_train,signal_output)))
                 input_samples_test.append(signal_output)
